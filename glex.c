@@ -272,10 +272,11 @@ int main (int argc, char *argv[]) {
 	
 	GtkWidget *entry;
 
-	if (GTK_MAJOR_VERSION > 2) 
+	#if GTK_MAJOR_VERSION == 3 
 		combo_entry = gtk_combo_box_text_new_with_entry ();
-	else
+	#else
 		combo_entry = gtk_combo_box_entry_new_text ();
+	#endif
 
 	entry = gtk_bin_get_child (GTK_BIN (combo_entry));
 
@@ -294,7 +295,14 @@ int main (int argc, char *argv[]) {
 	mainwin = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	GtkWidget *vbox, *align;
-	vbox = gtk_vbox_new(FALSE, 1);
+	
+	#if GTK_MAJOR_VERSION == 3
+		vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
+		gtk_box_set_homogeneous (GTK_BOX (vbox), FALSE);
+	#else
+		vbox = gtk_vbox_new (FALSE, 1);
+	#endif
+	
 	align = gtk_alignment_new (0,0,1,0);
 
 	gtk_window_resize (GTK_WINDOW (mainwin),
@@ -306,7 +314,6 @@ int main (int argc, char *argv[]) {
 	gtk_container_add(GTK_CONTAINER (mainwin), vbox);
 	gtk_container_add(GTK_CONTAINER (vbox), align);
 	gtk_container_add(GTK_CONTAINER (align), combo_entry);
-
 	
 	gtk_text_view_set_cursor_visible ( GTK_TEXT_VIEW (text_view), FALSE);
 	gtk_text_view_set_editable ( GTK_TEXT_VIEW (text_view), FALSE);
@@ -321,9 +328,9 @@ int main (int argc, char *argv[]) {
 	gtk_container_add(GTK_CONTAINER (vbox), scrwin);
 	gtk_container_add(GTK_CONTAINER (scrwin), text_view);	
 	
-	gtk_box_set_homogeneous ( GTK_BOX (vbox), FALSE);
 	gtk_box_set_child_packing ( GTK_BOX (vbox), align, FALSE, FALSE, 0, GTK_PACK_START);
-
+	gtk_box_set_child_packing ( GTK_BOX (vbox), scrwin, TRUE, TRUE, 0, GTK_PACK_END);
+	
 	g_signal_connect(mainwin, "destroy", G_CALLBACK (on_quit), NULL);
 	g_signal_connect(mainwin, "window-state-event", G_CALLBACK (on_window_restate), NULL);
 	g_signal_connect(mainwin, "delete-event", G_CALLBACK (on_window_delete), NULL);
