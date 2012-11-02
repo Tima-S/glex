@@ -26,75 +26,22 @@
 
 #include <string.h>
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#include "xdxf.h"
 
 GtkTextBuffer *text_view_buffer;
 GtkWidget *combo_entry;
 
-xmlChar *result = NULL;
-xmlChar *concat_res = NULL;
 
-gchar *word = NULL;
-gboolean word_not_found = FALSE;
 
 gint max_count_elem_in_combo_entry = 5;
 gint window_width = 400;
 gint window_height = 500;
-
-gchar *path_to_dict = NULL;
 
 gboolean no_save_size = FALSE; /* When window is maximized or fullscreened */
 
 #define CONF_FILE_NAME "glex.conf"
 #define DICT_FILE_NAME "dict.xdxf"
 
-void search_xml_node (xmlNode *a_node, xmlDoc *doc) {
-	xmlNode *cur_node = a_node;
- 	xmlChar *res;
- 	
- 	while (cur_node != NULL) { 
-		if (cur_node->type == XML_ELEMENT_NODE) {
-			if (xmlStrcmp (cur_node->name, (const xmlChar*) "k") == 0) {
-				xmlChar *k = xmlNodeListGetString(doc, cur_node->xmlChildrenNode, 1);
-				if (xmlStrcmp (k,(const xmlChar*)  word) == 0) {
-					res = xmlNodeListGetString(doc, cur_node->parent->xmlChildrenNode, 1);
-					if (concat_res) {
-						concat_res = g_strjoin ("\n\n", concat_res, (gchar*) res, NULL);
-						xmlFree (res);
-					}
-					else
-						concat_res = res;
-					
-				}
-				xmlFree (k);
-			}
-			if (cur_node->children != NULL)
-				search_xml_node(cur_node->children, doc);
-		}
-			cur_node = cur_node->next;
-	}
-}
-
-void open_xdxf_file () { 
-	xmlDoc  *doc = NULL;
-	xmlNode *root_element = NULL;
- 
-        doc = xmlReadFile (path_to_dict, NULL, 0);
-
-	if (doc != NULL) {
-		root_element = xmlDocGetRootElement (doc);
-		if (root_element != NULL) {
-			search_xml_node (root_element, doc);
-			result = concat_res;
-		}
-	}
-	if (result == NULL) 
-		word_not_found = TRUE;
-	xmlFreeDoc(doc);
-	xmlCleanupParser();
-	
-}
 
 gboolean combo_entry_has_item (gchar *item) {
 	GtkTreeModel *model = GTK_TREE_MODEL(gtk_combo_box_get_model(GTK_COMBO_BOX (combo_entry)));
@@ -269,6 +216,7 @@ int main (int argc, char *argv[]) {
 	gtk_init (&argc, &argv);
 	
 	g_thread_init (NULL);
+	xdxf_init ();
 	
 	GtkWidget *entry;
 
