@@ -20,6 +20,24 @@
 
 #include "xdxf.h"
 
+static gchar **resv = NULL;
+static gint len = 0;
+
+static void add_res (gchar *s) {
+	len++;
+	resv = g_realloc (resv, sizeof (gchar*) * (len+1));
+	resv[len-1] = s;
+	resv[len] = NULL;
+}
+
+static gchar* build_res () {
+	gchar* s = g_strjoinv ("\n\n", resv);
+	g_strfreev (resv);
+	resv = NULL;
+	len = 0;
+	return s;	
+}
+
 
 static void search_xml_node (xmlNode *a_node, xmlDoc *doc) {
 	xmlNode *cur_node = a_node;
@@ -31,13 +49,7 @@ static void search_xml_node (xmlNode *a_node, xmlDoc *doc) {
 				xmlChar *k = xmlNodeListGetString(doc, cur_node->xmlChildrenNode, 1);
 				if (xmlStrcmp (k,(const xmlChar*)  word) == 0) {
 					res = xmlNodeListGetString(doc, cur_node->parent->xmlChildrenNode, 1);
-					if (concat_res) {
-						concat_res = g_strjoin ("\n\n", concat_res, (gchar*) res, NULL);
-						xmlFree (res);
-					}
-					else
-						concat_res = res;
-					
+					add_res (res);
 				}
 				xmlFree (k);
 			}
@@ -58,10 +70,11 @@ void open_xdxf_file () {
 		root_element = xmlDocGetRootElement (doc);
 		if (root_element != NULL) {
 			search_xml_node (root_element, doc);
-			result = concat_res;
+			if (resv) 
+				results_new_article (build_res(), TRUE);
 		}
 	}
-	if (result == NULL) 
+	if (!results_get_count ()) 
 		word_not_found = TRUE;
 	xmlFreeDoc(doc);
 	xmlCleanupParser();
@@ -69,13 +82,11 @@ void open_xdxf_file () {
 }
 
 void xdxf_init () {
-	gchar *word = NULL;
-	gboolean word_not_found = FALSE;
+	word = NULL;
+	word_not_found = FALSE;
 
-	xmlChar *result = NULL;
-	xmlChar *concat_res = NULL;
-
-	gchar *path_to_dict = NULL;
+	path_to_dict = NULL;
+	results_init ();
 }
 
 

@@ -7,11 +7,10 @@
 	#include <glib.h>
 	#include <glib/gstdio.h>
 	
+	#include "results.h"
+	
 	gchar *word;
 	gboolean word_not_found;
-
-	xmlChar *result;
-	xmlChar *concat_res;
 
 	gchar *path_to_dict;
 	

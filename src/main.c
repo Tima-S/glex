@@ -62,8 +62,8 @@ gboolean combo_entry_has_item (gchar *item) {
 
 gboolean idl_print_result () {
 	GtkWidget * entry = gtk_bin_get_child ( GTK_BIN (combo_entry));
-	if (result) {
-		gtk_text_buffer_set_text (text_view_buffer, result, -1);
+	if (results_get_count ()) {
+		gtk_text_buffer_set_text (text_view_buffer, results_get_article (0), -1);
 		
 		if (!combo_entry_has_item (word)) {	
 			gint count = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(gtk_combo_box_get_model(GTK_COMBO_BOX (combo_entry))),NULL);
@@ -114,12 +114,7 @@ void on_combo_activate (GtkEntry *entry) {
 	
 		gtk_widget_set_sensitive (combo_entry, FALSE);
 	
-		if (result) {
-			g_free (result);
-			result = NULL;
-			concat_res = NULL;
-		}
-		
+		results_free ();		
 		word_not_found = FALSE;
 		
 		g_thread_create ( (GThreadFunc)open_xdxf_file, NULL, FALSE, NULL);
